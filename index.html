@@ -4,91 +4,161 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gym Log</title>
-    <meta name="description" content="Personal workout log and AI coaching history.">
+    <meta name="description" content="Personal workout dashboard and AI coaching history.">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="topbar">
-      <div>
-        <p class="eyebrow">Gyurin AI Coach</p>
-        <h1>Gym Log</h1>
-      </div>
-      <a class="ghost-button" href="./save.html" aria-label="저장 페이지 열기">Save</a>
+      <a class="brand" href="./index.html" aria-label="Gym Log home">
+        <span class="brand-mark">GL</span>
+        <span>
+          <strong>Gym Log</strong>
+          <small>AI Coach</small>
+        </span>
+      </a>
+      <nav class="nav-actions" aria-label="주요 메뉴">
+        <a href="#calendar">Calendar</a>
+        <a href="#records">PR</a>
+        <a href="#coach">Coach</a>
+        <a class="save-link" href="./save.html">Save</a>
+      </nav>
     </header>
 
     <main>
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">오늘의 흐름</p>
-          <h2 id="heroTitle">운동 기록을 불러오는 중</h2>
-          <p id="heroText">최근 운동, 주간 기록, 주의할 부위를 정리하고 있어.</p>
+          <p class="eyebrow">Today</p>
+          <h1 id="heroTitle">운동 기록을 정리하는 중</h1>
+          <p id="heroText">최근 운동, 통증 이력, PR, 목표 달성률을 한 화면에서 볼 수 있게 준비하고 있어.</p>
+          <div class="hero-actions">
+            <a class="primary-button" href="./save.html">운동 저장</a>
+            <a class="secondary-button" href="#tracker">머신 추적</a>
+          </div>
         </div>
-        <div class="body-panel" aria-label="현재 인바디 기준">
-          <span>177 cm</span>
-          <strong>79.0 kg</strong>
-          <small>골격근 33.8 kg · 체지방률 23.7%</small>
-        </div>
+
+        <aside class="readiness-panel" aria-label="현재 상태">
+          <div>
+            <span class="label">체중</span>
+            <strong id="currentWeight">79.0 kg</strong>
+          </div>
+          <div class="readiness-grid">
+            <span><b id="muscleMass">33.8</b> kg 골격근</span>
+            <span><b id="bodyFat">23.7</b>% 체지방</span>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span>체지방 감량 목표</span>
+              <strong id="goalPercent">0%</strong>
+            </div>
+            <div class="progress-track"><span id="goalBar"></span></div>
+            <small id="goalText">인바디가 추가되면 진행률이 자동 계산돼.</small>
+          </div>
+        </aside>
       </section>
 
       <section class="metrics" aria-label="운동 요약">
         <article>
-          <span>이번 주</span>
+          <span>이번 주 운동</span>
           <strong id="weekCount">0회</strong>
+          <small id="weekHint">주간 루틴을 기다리는 중</small>
         </article>
         <article>
-          <span>최근 볼륨</span>
-          <strong id="lastVolume">0 kg</strong>
+          <span>이번 주 볼륨</span>
+          <strong id="weekVolume">0 kg</strong>
+          <small id="volumeHint">중량 운동 기준</small>
         </article>
         <article>
           <span>연속 기록</span>
           <strong id="streak">0일</strong>
+          <small>오늘 기록하면 이어져</small>
         </article>
         <article>
-          <span>운동 수</span>
-          <strong id="totalWorkouts">0회</strong>
+          <span>자동 PR</span>
+          <strong id="recordCount">0개</strong>
+          <small>머신별 최고 중량</small>
         </article>
       </section>
 
-      <section class="layout">
-        <div class="primary-stack">
-          <section class="section">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">History</p>
-                <h2>최근 운동</h2>
-              </div>
-              <select id="sortSelect" aria-label="운동 기록 정렬">
-                <option value="desc">최신순</option>
-                <option value="asc">오래된순</option>
-              </select>
+      <section class="dashboard-grid">
+        <section class="panel calendar-panel" id="calendar">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Calendar</p>
+              <h2>운동 캘린더</h2>
             </div>
-            <div id="workoutList" class="workout-list"></div>
-          </section>
+            <span class="chip" id="monthLabel">이번 달</span>
+          </div>
+          <div id="calendarGrid" class="calendar-grid" aria-label="최근 운동 캘린더"></div>
+        </section>
 
-          <section class="section">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Calendar</p>
-                <h2>운동 캘린더</h2>
-              </div>
+        <section class="panel" id="coach">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">AI Feedback</p>
+              <h2>최근 코칭</h2>
             </div>
-            <div id="calendar" class="calendar" aria-label="최근 운동 캘린더"></div>
-          </section>
+          </div>
+          <div id="coachNotes" class="timeline"></div>
+        </section>
+      </section>
+
+      <section class="analysis-grid">
+        <section class="panel" id="tracker">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Machine Tracker</p>
+              <h2>머신별 중량 추적</h2>
+            </div>
+            <select id="exerciseSelect" aria-label="운동 선택"></select>
+          </div>
+          <div id="exerciseTrend" class="trend"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Volume</p>
+              <h2>운동량 분석</h2>
+            </div>
+          </div>
+          <div id="volumeChart" class="bar-chart"></div>
+        </section>
+      </section>
+
+      <section class="dashboard-grid lower-grid">
+        <section class="panel" id="records">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Personal Records</p>
+              <h2>PR 자동 관리</h2>
+            </div>
+          </div>
+          <div id="recordsList" class="record-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Care Log</p>
+              <h2>통증/주의 이력</h2>
+            </div>
+          </div>
+          <div id="painHistory" class="care-list"></div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">History</p>
+            <h2>최근 운동 기록</h2>
+          </div>
+          <select id="sortSelect" aria-label="운동 기록 정렬">
+            <option value="desc">최신순</option>
+            <option value="asc">오래된순</option>
+          </select>
         </div>
-
-        <aside class="side-stack">
-          <section class="section">
-            <p class="eyebrow">Coach Notes</p>
-            <h2>주의할 점</h2>
-            <div id="coachNotes" class="note-list"></div>
-          </section>
-
-          <section class="section">
-            <p class="eyebrow">Records</p>
-            <h2>머신별 최고 기록</h2>
-            <div id="records" class="record-list"></div>
-          </section>
-        </aside>
+        <div id="workoutList" class="workout-list"></div>
       </section>
     </main>
 

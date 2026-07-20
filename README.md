@@ -5,6 +5,7 @@ Personal workout log for GitHub Pages, with a Cloudflare Worker save API.
 ## What this does
 
 - Shows workout history, recent coaching notes, weekly count, total volume, and personal records.
+- Adds a workout calendar, automatic PR cards, exercise weight tracking, AI feedback, volume analysis, care history, and body goal progress.
 - Opens ChatGPT-generated save links through `save.html`.
 - Sends accepted records to a Cloudflare Worker.
 - The Worker appends the record to `data/workouts.json` and commits it to this repository.
