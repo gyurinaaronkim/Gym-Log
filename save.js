@@ -128,11 +128,54 @@ async function saveWorkout() {
     });
 
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || "저장에 실패했어.");
+    if (!response.ok) throw new Error(buildSaveError(response.status, result.error));
     saveStatus.textContent = `저장 완료. Commit: ${result.commit || "created"}`;
   } catch (error) {
-    saveStatus.textContent = error.message;
+    saveStatus.textContent = explainNetworkError(error);
   }
+}
+
+async function testConnection() {
+  const workerUrl = workerUrlInput.value.trim().replace(/\/$/, "");
+
+  if (!workerUrl) {
+    settingsStatus.textContent = "Worker URL을 먼저 입력해줘.";
+    return;
+  }
+
+  settingsStatus.textContent = "Worker 연결을 확인하는 중...";
+
+  try {
+    const response = await fetch(`${workerUrl}/health`, { method: "GET" });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) {
+      throw new Error("Worker는 열렸지만 health 응답이 올바르지 않아.");
+    }
+    settingsStatus.textContent = "Worker 연결 성공. 이제 저장을 시도해도 돼.";
+  } catch (error) {
+    settingsStatus.textContent = explainNetworkError(error);
+  }
+}
+
+function buildSaveError(status, detail) {
+  if (status === 401) {
+    return "Save key가 Cloudflare의 API_SECRET과 달라. Save key를 다시 확인해줘.";
+  }
+  if (status === 404) {
+    return "Worker에 /workouts 저장 API가 없어. Cloudflare Worker 코드가 최신 버전인지 확인해줘.";
+  }
+  if (status >= 500 && detail) {
+    return `Worker 내부 오류: ${detail}`;
+  }
+  return detail || "저장에 실패했어.";
+}
+
+function explainNetworkError(error) {
+  const message = error.message || String(error);
+  if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+    return "Worker에 연결하지 못했어. Worker URL, Cloudflare 배포 상태, ALLOWED_ORIGIN 값을 확인해줘.";
+  }
+  return message;
 }
 
 document.querySelector("#saveSettings").addEventListener("click", () => {
@@ -148,6 +191,8 @@ document.querySelector("#clearSettings").addEventListener("click", () => {
   apiSecretInput.value = "";
   settingsStatus.textContent = "저장 설정을 지웠어.";
 });
+
+document.querySelector("#testConnection").addEventListener("click", testConnection);
 
 document.querySelector("#formatPayload").addEventListener("click", () => {
   try {
