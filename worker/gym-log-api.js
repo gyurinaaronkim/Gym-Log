@@ -1,4 +1,5 @@
-const DATA_PATH = "data/workouts.json";
+const WORKOUTS_PATH = "data/workouts.json";
+const BODY_PATH = "data/body.json";
 
 export default {
   async fetch(request, env) {
@@ -18,8 +19,26 @@ export default {
       if (url.pathname === "/workouts" && request.method === "POST") {
         assertAuthorized(request, env);
         const payload = await request.json();
-        const record = normalizeRecord(payload.record || payload);
-        const result = await saveWorkout(env, record);
+        const record = normalizeWorkout(payload.record || payload);
+        const result = await saveArrayRecord(env, {
+          path: WORKOUTS_PATH,
+          record,
+          idPrefix: "workout",
+          message: `Save workout ${record.date}`,
+        });
+        return json(result, 200, corsHeaders);
+      }
+
+      if (url.pathname === "/body" && request.method === "POST") {
+        assertAuthorized(request, env);
+        const payload = await request.json();
+        const record = normalizeBody(payload.record || payload);
+        const result = await saveArrayRecord(env, {
+          path: BODY_PATH,
+          record,
+          idPrefix: "body",
+          message: `Save InBody ${record.date}`,
+        });
         return json(result, 200, corsHeaders);
       }
 
@@ -49,19 +68,13 @@ function assertAuthorized(request, env) {
   }
 }
 
-function normalizeRecord(record) {
-  if (!record || typeof record !== "object") {
-    throw badRequest("record is required");
-  }
-  if (!record.date || !/^\d{4}-\d{2}-\d{2}$/.test(record.date)) {
-    throw badRequest("record.date must be YYYY-MM-DD");
-  }
-  if (!Array.isArray(record.exercises)) {
-    throw badRequest("record.exercises must be an array");
-  }
+function normalizeWorkout(record) {
+  if (!record || typeof record !== "object") throw badRequest("record is required");
+  assertDate(record.date);
+  if (!Array.isArray(record.exercises)) throw badRequest("record.exercises must be an array");
 
   return {
-    id: record.id || `workout-${record.date}-${crypto.randomUUID()}`,
+    id: cleanText(record.id) || `workout-${record.date}-${crypto.randomUUID()}`,
     date: record.date,
     durationMinutes: Number(record.durationMinutes || 0),
     focus: cleanText(record.focus || "운동"),
@@ -69,6 +82,34 @@ function normalizeRecord(record) {
     exercises: record.exercises.map(normalizeExercise),
     cardio: Array.isArray(record.cardio) ? record.cardio.map(normalizeCardio) : [],
     coachNotes: Array.isArray(record.coachNotes) ? record.coachNotes.map(cleanText).filter(Boolean) : [],
+    notes: cleanText(record.notes || ""),
+    savedAt: new Date().toISOString(),
+  };
+}
+
+function normalizeBody(record) {
+  if (!record || typeof record !== "object") throw badRequest("record is required");
+  assertDate(record.date);
+
+  const heightCm = Number(record.heightCm || 0);
+  const weightKg = Number(record.weightKg || 0);
+  const skeletalMuscleKg = Number(record.skeletalMuscleKg || 0);
+  const bodyFatPercent = Number(record.bodyFatPercent || 0);
+  const bodyFatMassKg = Number(record.bodyFatMassKg || (weightKg * bodyFatPercent / 100) || 0);
+
+  if (!heightCm || !weightKg || !bodyFatPercent) {
+    throw badRequest("heightCm, weightKg, and bodyFatPercent are required");
+  }
+
+  return {
+    id: cleanText(record.id) || `body-${record.date}`,
+    date: record.date,
+    heightCm,
+    weightKg,
+    skeletalMuscleKg,
+    bodyFatPercent,
+    bodyFatMassKg: round1(bodyFatMassKg),
+    bmi: round1(record.bmi || weightKg / ((heightCm / 100) ** 2)),
     notes: cleanText(record.notes || ""),
     savedAt: new Date().toISOString(),
   };
@@ -95,31 +136,32 @@ function normalizeCardio(cardio) {
   };
 }
 
-async function saveWorkout(env, record) {
-  const existing = await readGithubFile(env, DATA_PATH);
-  const workouts = existing.content ? JSON.parse(existing.content) : [];
-  if (!Array.isArray(workouts)) throw new Error(`${DATA_PATH} must contain an array`);
+async function saveArrayRecord(env, { path, record, idPrefix, message }) {
+  const existing = await readGithubFile(env, path);
+  const records = existing.content ? JSON.parse(existing.content) : [];
+  if (!Array.isArray(records)) throw new Error(`${path} must contain an array`);
 
-  const nextWorkouts = upsertWorkout(workouts, record);
-  const content = `${JSON.stringify(nextWorkouts, null, 2)}\n`;
+  const nextRecords = upsertRecord(records, record);
+  const content = `${JSON.stringify(nextRecords, null, 2)}\n`;
   const putResult = await writeGithubFile(env, {
-    path: DATA_PATH,
+    path,
     content,
     sha: existing.sha,
-    message: `Save workout ${record.date}`,
+    message,
   });
 
   return {
     ok: true,
+    type: idPrefix,
     id: record.id,
     date: record.date,
     commit: putResult.commit?.sha || null,
   };
 }
 
-function upsertWorkout(workouts, record) {
-  const index = workouts.findIndex((workout) => workout.id === record.id);
-  const next = [...workouts];
+function upsertRecord(records, record) {
+  const index = records.findIndex((item) => item.id === record.id || item.date === record.date);
+  const next = [...records];
 
   if (index >= 0) {
     next[index] = record;
@@ -201,12 +243,26 @@ function decodeBase64(value) {
   return new TextDecoder().decode(bytes);
 }
 
+function assertDate(value) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw badRequest("record.date must be YYYY-MM-DD");
+  }
+}
+
 function cleanText(value) {
   return String(value || "").trim();
+}
+
+function round1(value) {
+  return Math.round(Number(value || 0) * 10) / 10;
 }
 
 function badRequest(message) {
   const error = new Error(message);
   error.status = 400;
   return error;
+}
+
+function json(payload, status, headers) {
+  return new Response(JSON.stringify(payload), { status, headers });
 }

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Machine Guide · Gym Log</title>
+    <meta name="description" content="Exercise machine guide by body part.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="Gym Log home">
+        <span class="brand-mark">GL</span>
+        <span>
+          <strong>Gym Log</strong>
+          <small>Machine guide</small>
+        </span>
+      </a>
+      <nav class="nav-actions" aria-label="주요 메뉴">
+        <a href="./index.html">Dashboard</a>
+        <a href="./body.html">InBody</a>
+        <a href="./save.html">Save</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div>
+          <p class="eyebrow">Training Library</p>
+          <h1>부위별 추천 머신과 사용법</h1>
+          <p>헬스장에서 기구를 찾고, 어떤 자세로 해야 하는지 빠르게 확인할 수 있게 정리했어. 네 기록이 쌓이면 현재 최고 중량도 함께 보여줘.</p>
+        </div>
+        <aside class="api-note">
+          <strong>오늘의 기준</strong>
+          <p>통증이 있거나 자세가 무너지면 중량보다 동작 품질을 먼저 잡는 쪽으로 진행해.</p>
+        </aside>
+      </section>
+
+      <section class="filter-tabs" aria-label="부위 선택">
+        <button type="button" class="active" data-filter="all">전체</button>
+        <button type="button" data-filter="legs">하체</button>
+        <button type="button" data-filter="chest">가슴</button>
+        <button type="button" data-filter="back">등</button>
+        <button type="button" data-filter="shoulders">어깨</button>
+        <button type="button" data-filter="core">코어</button>
+        <button type="button" data-filter="cardio">유산소</button>
+      </section>
+
+      <section id="machineGrid" class="machine-grid" aria-label="머신 목록"></section>
+    </main>
+
+    <script src="./machines.js"></script>
+  </body>
+</html>

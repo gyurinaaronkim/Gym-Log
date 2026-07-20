@@ -599,6 +599,251 @@ textarea {
   background: #fbfcf8;
 }
 
+.page-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.7fr);
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+.page-hero > div,
+.api-note {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.90);
+  box-shadow: var(--shadow);
+}
+
+.page-hero > div {
+  padding: clamp(24px, 5vw, 46px);
+}
+
+.page-hero h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.03;
+}
+
+.page-hero p {
+  max-width: 720px;
+  margin: 16px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.api-note {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  padding: 24px;
+}
+
+.api-note strong {
+  font-size: 20px;
+}
+
+.api-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.body-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric-chart {
+  min-height: 190px;
+  display: grid;
+  gap: 14px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.metric-chart header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-chart header span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.spark-bars {
+  height: 120px;
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.spark-bars span {
+  flex: 1;
+  min-width: 12px;
+  border-radius: 8px 8px 3px 3px;
+  background: var(--green);
+}
+
+.spark-bars.blue span {
+  background: var(--blue);
+}
+
+.spark-bars.rose span {
+  background: var(--rose);
+}
+
+.spark-bars.gold span {
+  background: var(--gold);
+}
+
+.body-form textarea {
+  min-height: 98px;
+}
+
+.body-history {
+  display: grid;
+  gap: 10px;
+}
+
+.body-row {
+  display: grid;
+  grid-template-columns: 112px repeat(3, minmax(120px, 1fr));
+  gap: 10px;
+  align-items: center;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.body-row time,
+.body-row span {
+  font-weight: 850;
+}
+
+.body-row p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 0 16px;
+  padding-bottom: 4px;
+}
+
+.filter-tabs button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 15px;
+  background: #ffffff;
+  color: var(--muted);
+  font-weight: 850;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filter-tabs button.active {
+  border-color: var(--green);
+  background: var(--green);
+  color: #ffffff;
+}
+
+.machine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.machine-card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.machine-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.machine-card h2 {
+  margin: 10px 0 0;
+  font-size: 24px;
+}
+
+.machine-card header > strong {
+  align-self: start;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.target {
+  margin: 0;
+  color: var(--blue);
+  font-weight: 850;
+}
+
+.machine-section {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.machine-section h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.machine-section p,
+.machine-section li,
+.machine-caution {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.machine-section p,
+.machine-caution {
+  margin: 0;
+}
+
+.machine-section ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.machine-caution {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--rose-soft);
+  color: var(--rose);
+  font-weight: 750;
+}
+
 .save-shell {
   width: min(920px, calc(100% - 32px));
   margin: 30px auto 60px;
@@ -641,6 +886,7 @@ textarea {
 
 @media (max-width: 940px) {
   .hero,
+  .page-hero,
   .dashboard-grid,
   .analysis-grid,
   .form-grid {
@@ -693,5 +939,14 @@ textarea {
   .day-cell {
     min-height: 44px;
     padding: 6px;
+  }
+
+  .body-charts,
+  .body-row {
+    grid-template-columns: 1fr;
+  }
+
+  .machine-card header {
+    flex-direction: column;
   }
 }
