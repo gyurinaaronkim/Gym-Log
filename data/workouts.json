@@ -1,0 +1,56 @@
+[
+  {
+    "id": "workout-2026-07-16",
+    "date": "2026-07-16",
+    "durationMinutes": 60,
+    "focus": "전신 적응",
+    "summary": "첫 전신 머신 적응 루틴. 근력운동 후 자전거에서 메스꺼움이 있어 다음 운동부터 유산소 강도를 조절하기로 함.",
+    "exercises": [
+      { "name": "레그프레스", "weightKg": 60, "reps": 12, "sets": 3 },
+      { "name": "체스트프레스", "weightKg": 20, "reps": 12, "sets": 3, "notes": "어깨 개입 느낌" },
+      { "name": "랫풀다운", "weightKg": 25, "reps": 10, "sets": 3, "notes": "승모근 개입" },
+      { "name": "레그컬", "weightKg": 30, "reps": 12, "sets": 2, "notes": "무릎 뒤쪽 두둑 소리" },
+      { "name": "시티드로우", "weightKg": 30, "reps": 12, "sets": 2, "notes": "승모근 개입" },
+      { "name": "숄더프레스", "weightKg": 10, "reps": 10, "sets": 2 },
+      { "name": "맨몸 크런치", "weightKg": 0, "reps": 10, "sets": 2 }
+    ],
+    "cardio": [
+      { "name": "러닝머신", "speedKmh": 6, "minutes": 5, "notes": "워밍업" },
+      { "name": "실내 자전거", "minutes": 10, "notes": "메스꺼움 발생" }
+    ],
+    "coachNotes": [
+      "자전거는 당분간 강도를 낮추거나 생략.",
+      "체스트프레스는 어깨를 으쓱하지 않고 견갑을 등받이에 붙이기.",
+      "랫풀다운은 손보다 팔꿈치로 당기기.",
+      "레그컬에서 통증이나 불편감이 있으면 제외."
+    ],
+    "notes": "운동 종료 20분 뒤에도 약간 메스꺼움. 무릎 뒤 통증은 없음."
+  },
+  {
+    "id": "workout-2026-07-19",
+    "date": "2026-07-19",
+    "durationMinutes": 60,
+    "focus": "전신 + 러닝",
+    "summary": "두 번째 전신 루틴. 메스꺼움 없이 러닝 속도 9km/h 10분을 완료했고, 레그컬은 무릎 뒤 통증 때문에 중량을 낮춤.",
+    "exercises": [
+      { "name": "레그프레스", "weightKg": 60, "reps": 12, "sets": 3 },
+      { "name": "체스트프레스", "weightKg": 20, "reps": 12, "sets": 3 },
+      { "name": "랫풀다운", "weightKg": 25, "reps": 10, "sets": 3, "notes": "삼두 개입 느낌" },
+      { "name": "레그컬", "weightKg": 20, "reps": 12, "sets": 2, "notes": "무릎 뒤쪽 통증으로 낮춤" },
+      { "name": "시티드로우", "weightKg": 30, "reps": 12, "sets": 3 },
+      { "name": "숄더프레스", "weightKg": 10, "reps": 10, "sets": 2, "notes": "우측 운동능력 저하" },
+      { "name": "싯업", "weightKg": 0, "reps": 30, "sets": 1 }
+    ],
+    "cardio": [
+      { "name": "러닝머신", "speedKmh": 6, "minutes": 5, "notes": "워밍업" },
+      { "name": "러닝머신", "speedKmh": 9, "minutes": 10, "notes": "유산소" }
+    ],
+    "coachNotes": [
+      "랫풀다운은 팔꿈치를 엉덩이 주머니 방향으로 내린다는 느낌으로 진행.",
+      "레그컬은 무릎 뒤 통증이 다시 있으면 당분간 제외.",
+      "숄더프레스는 오른쪽이 가능한 범위에 왼쪽을 맞추기.",
+      "러닝은 자전거보다 몸에 잘 맞는 편으로 관찰됨."
+    ],
+    "notes": "물놀이 5시간 후 하루 휴식하고 진행."
+  }
+]

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Save Workout · Gym Log</title>
+    <meta name="description" content="Review and save a workout record to Gym Log.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Save Link</p>
+        <h1>운동 기록 저장</h1>
+      </div>
+      <a class="ghost-button" href="./index.html">Log</a>
+    </header>
+
+    <main class="save-shell">
+      <section class="save-card">
+        <p class="eyebrow">Connection</p>
+        <h2>저장 설정</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="workerUrl">Cloudflare Worker URL</label>
+            <input id="workerUrl" placeholder="https://gym-log-api.example.workers.dev">
+          </div>
+          <div class="field">
+            <label for="apiSecret">Save key</label>
+            <input id="apiSecret" type="password" placeholder="API_SECRET">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="secondary-button" id="saveSettings" type="button">Save settings</button>
+          <button class="secondary-button" id="clearSettings" type="button">Clear</button>
+        </div>
+        <p class="status" id="settingsStatus"></p>
+      </section>
+
+      <section class="save-card">
+        <p class="eyebrow">Preview</p>
+        <h2>저장할 기록</h2>
+        <p class="muted">ChatGPT가 만든 링크를 열면 자동으로 채워져. 직접 JSON을 붙여넣어도 돼.</p>
+        <textarea id="payloadInput" spellcheck="false"></textarea>
+        <div class="actions">
+          <button class="secondary-button" id="formatPayload" type="button">Format</button>
+          <button class="primary-button" id="saveWorkout" type="button">Save to GitHub</button>
+        </div>
+        <p class="status" id="saveStatus"></p>
+        <div class="preview" id="preview"></div>
+      </section>
+    </main>
+
+    <script src="./save.js"></script>
+  </body>
+</html>

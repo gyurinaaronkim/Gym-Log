@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gym Log</title>
+    <meta name="description" content="Personal workout log and AI coaching history.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Gyurin AI Coach</p>
+        <h1>Gym Log</h1>
+      </div>
+      <a class="ghost-button" href="./save.html" aria-label="저장 페이지 열기">Save</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">오늘의 흐름</p>
+          <h2 id="heroTitle">운동 기록을 불러오는 중</h2>
+          <p id="heroText">최근 운동, 주간 기록, 주의할 부위를 정리하고 있어.</p>
+        </div>
+        <div class="body-panel" aria-label="현재 인바디 기준">
+          <span>177 cm</span>
+          <strong>79.0 kg</strong>
+          <small>골격근 33.8 kg · 체지방률 23.7%</small>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="운동 요약">
+        <article>
+          <span>이번 주</span>
+          <strong id="weekCount">0회</strong>
+        </article>
+        <article>
+          <span>최근 볼륨</span>
+          <strong id="lastVolume">0 kg</strong>
+        </article>
+        <article>
+          <span>연속 기록</span>
+          <strong id="streak">0일</strong>
+        </article>
+        <article>
+          <span>운동 수</span>
+          <strong id="totalWorkouts">0회</strong>
+        </article>
+      </section>
+
+      <section class="layout">
+        <div class="primary-stack">
+          <section class="section">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">History</p>
+                <h2>최근 운동</h2>
+              </div>
+              <select id="sortSelect" aria-label="운동 기록 정렬">
+                <option value="desc">최신순</option>
+                <option value="asc">오래된순</option>
+              </select>
+            </div>
+            <div id="workoutList" class="workout-list"></div>
+          </section>
+
+          <section class="section">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Calendar</p>
+                <h2>운동 캘린더</h2>
+              </div>
+            </div>
+            <div id="calendar" class="calendar" aria-label="최근 운동 캘린더"></div>
+          </section>
+        </div>
+
+        <aside class="side-stack">
+          <section class="section">
+            <p class="eyebrow">Coach Notes</p>
+            <h2>주의할 점</h2>
+            <div id="coachNotes" class="note-list"></div>
+          </section>
+
+          <section class="section">
+            <p class="eyebrow">Records</p>
+            <h2>머신별 최고 기록</h2>
+            <div id="records" class="record-list"></div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
