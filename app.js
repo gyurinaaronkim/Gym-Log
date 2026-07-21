@@ -336,11 +336,16 @@ function generatePersonalRoutine() {
   const records = getRecords(state.workouts);
   const careItems = getCareItems(workouts);
   const latest = workouts[0];
-  const plan = buildRoutinePlan({ workouts, body, records, careItems });
   const container = document.querySelector("#routineOutput");
 
+  if (!container) return;
+
+  container.innerHTML = `<p class="empty">최근 기록을 확인해서 루틴을 만드는 중이야...</p>`;
+
+  const plan = buildRoutinePlan({ workouts, body, records, careItems });
+
   if (!plan) {
-    container.innerHTML = `<p class="empty">운동 기록이 조금 더 쌓이면 맞춤 루틴을 만들 수 있어.</p>`;
+    container.innerHTML = `<p class="empty">운동 기록을 아직 불러오지 못했어. 페이지를 새로고침한 뒤 다시 눌러줘.</p>`;
     return;
   }
 
@@ -621,16 +626,25 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-document.querySelector("#sortSelect").addEventListener("change", (event) => {
-  state.sort = event.target.value;
-  render();
-});
+const sortSelect = document.querySelector("#sortSelect");
+if (sortSelect) {
+  sortSelect.addEventListener("change", (event) => {
+    state.sort = event.target.value;
+    render();
+  });
+}
 
-document.querySelector("#exerciseSelect").addEventListener("change", (event) => {
-  state.selectedExercise = event.target.value;
-  renderExerciseTrend();
-});
+const exerciseSelect = document.querySelector("#exerciseSelect");
+if (exerciseSelect) {
+  exerciseSelect.addEventListener("change", (event) => {
+    state.selectedExercise = event.target.value;
+    renderExerciseTrend();
+  });
+}
 
-document.querySelector("#generateRoutine").addEventListener("click", generatePersonalRoutine);
+const generateRoutineButton = document.querySelector("#generateRoutine");
+if (generateRoutineButton) {
+  generateRoutineButton.addEventListener("click", generatePersonalRoutine);
+}
 
 loadData();
