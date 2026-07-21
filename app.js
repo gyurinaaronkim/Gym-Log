@@ -1,6 +1,7 @@
 const state = {
   workouts: [],
   body: [],
+  machineDb: [],
   sort: "desc",
   selectedExercise: "",
   generatedRoutine: null,
@@ -20,13 +21,15 @@ const monthFormat = new Intl.DateTimeFormat("ko-KR", {
 });
 
 async function loadData() {
-  const [workouts, body] = await Promise.all([
+  const [workouts, body, machineDb] = await Promise.all([
     fetchJson("./data/workouts.json"),
     fetchJson("./data/body.json"),
+    fetchJson("./data/machines.json"),
   ]);
 
   state.workouts = Array.isArray(workouts) ? workouts : [];
   state.body = Array.isArray(body) ? body : [];
+  state.machineDb = Array.isArray(machineDb) ? machineDb : [];
   render();
 }
 
@@ -409,6 +412,10 @@ function generatePersonalRoutine() {
 function buildRoutinePlan({ workouts, body, records, careItems }) {
   if (!workouts.length) return null;
 
+  if (state.machineDb.length) {
+    return buildVariedRoutinePlan({ workouts, body, records, careItems });
+  }
+
   const latest = workouts[0];
   const latestNames = new Set((latest.exercises || []).map((exercise) => exercise.name));
   const careText = careItems.map((item) => item.text).join(" ");
@@ -510,6 +517,144 @@ function routineActionsMarkup() {
       <p class="status" id="routineSaveStatus"></p>
     </div>
   `;
+}
+
+function buildVariedRoutinePlan({ workouts, body, records, careItems }) {
+  const recentNames = workouts.slice(0, 2).flatMap((workout) => (
+    workout.exercises || []
+  ).map((exercise) => normalizeName(exercise.name)));
+  const careText = careItems.map((item) => item.text).join(" ");
+  const kneeConcern = includesAny(careText, ["무릎", "레그컬", "두둑", "통증"]);
+  const shoulderConcern = includesAny(careText, ["어깨", "숄더", "승모"]);
+  const nauseaConcern = includesAny(careText, ["메스꺼움", "자전거"]);
+  const bodyFatPercent = Number(body?.bodyFatPercent || 0);
+  const fatLossMode = bodyFatPercent >= 20;
+
+  const slots = [
+    { category: "legs", label: "하체", count: 2 },
+    { category: "chest", label: "가슴", count: 1 },
+    { category: "back", label: "등", count: 2 },
+    { category: "shoulders", label: "어깨", count: 1 },
+    { category: "core", label: "코어", count: 1 },
+  ];
+
+  const selected = [];
+  const used = new Set();
+
+  for (const slot of slots) {
+    for (let index = 0; index < slot.count; index += 1) {
+      const machine = pickMachine(slot.category, {
+        used,
+        recentNames,
+        kneeConcern,
+        shoulderConcern,
+      });
+      if (!machine) continue;
+      used.add(machine.id);
+      selected.push(machineToRoutineExercise(machine, records, {
+        kneeConcern,
+        shoulderConcern,
+      }));
+    }
+  }
+
+  const cardio = pickCardio({ nauseaConcern, fatLossMode });
+  const variedCount = selected.filter((exercise) => !recentNames.includes(normalizeName(exercise.name))).length;
+
+  return {
+    focus: variedCount >= 3 ? "전신 변형 루틴" : "전신 균형 루틴",
+    reason: "홈페이지 머신 DB에서 최근 사용 빈도, 인바디 목표, 통증 이력을 반영해 머신을 번갈아 추천.",
+    durationMinutes: 60,
+    intensity: "RPE 6~7",
+    exercises: selected,
+    cardio,
+    notes: [
+      "오늘은 같은 머신 반복을 줄이고 비슷한 부위를 다른 기구로 자극하는 날.",
+      "처음 해보는 머신은 추천 중량보다 5kg 낮게 시작해도 좋아.",
+      "무릎 뒤쪽, 어깨, 승모 개입이 느껴지면 해당 머신은 즉시 중량을 낮추거나 제외.",
+    ],
+  };
+}
+
+function pickMachine(category, context) {
+  const candidates = state.machineDb.filter((machine) => {
+    if (machine.category !== category) return false;
+    if (context.used.has(machine.id)) return false;
+    if (context.kneeConcern && ["lying-leg-curl", "seated-leg-curl"].includes(machine.id)) return false;
+    if (context.shoulderConcern && ["shoulder-press"].includes(machine.id)) return false;
+    return machine.category !== "cardio";
+  });
+
+  return candidates
+    .map((machine) => ({
+      machine,
+      score: scoreMachine(machine, context.recentNames),
+    }))
+    .sort((a, b) => b.score - a.score || a.machine.rotation - b.machine.rotation)[0]?.machine;
+}
+
+function scoreMachine(machine, recentNames) {
+  let score = 100;
+  const normalized = normalizeName(machine.name);
+  const recentCount = recentNames.filter((name) => name === normalized).length;
+  score -= recentCount * 45;
+  score += Number(machine.rotation || 0);
+  if (machine.level === "beginner") score += 8;
+  return score;
+}
+
+function machineToRoutineExercise(machine, records, context) {
+  const record = records.find((item) => normalizeName(item.name) === normalizeName(machine.name));
+  const hasRecord = Boolean(record);
+  const baseWeight = Number(record?.weightKg || machine.defaultWeightKg || 0);
+  const firstTry = !hasRecord;
+  const caution = isMachineCaution(machine, context);
+  const weightKg = firstTry && baseWeight > 0 ? Math.max(5, baseWeight - 5) : baseWeight;
+
+  return {
+    name: machine.name,
+    weightKg,
+    reps: Number(machine.reps || 12),
+    sets: Number(machine.sets || 2),
+    note: firstTry
+      ? `새 후보 머신. ${machine.cues?.[0] || "자세 우선"} 추천 시작 중량은 보수적으로 잡음.`
+      : `${record.weightKg}kg 기록 기준. ${machine.cues?.[0] || "자세 우선"}`,
+    caution,
+  };
+}
+
+function isMachineCaution(machine, context) {
+  if (context.kneeConcern && machine.category === "legs") return true;
+  if (context.shoulderConcern && machine.category === "shoulders") return true;
+  return false;
+}
+
+function pickCardio({ nauseaConcern, fatLossMode }) {
+  const preferred = nauseaConcern ? "러닝머신" : "일립티컬";
+  const machine = state.machineDb.find((item) => item.name === preferred)
+    || state.machineDb.find((item) => item.category === "cardio");
+
+  if (!machine) {
+    return {
+      name: "러닝머신",
+      detail: "속도 6.0~8.0 km/h · 10~12분",
+      note: "호흡이 무너지면 속도를 낮추기.",
+    };
+  }
+
+  return {
+    name: machine.name,
+    detail: fatLossMode ? "12~15분 · 대화가 짧게 가능한 강도" : "10~12분 · 편안한 중강도",
+    note: machine.caution || "어지럽거나 메스꺼우면 즉시 중단.",
+  };
+}
+
+function normalizeName(value) {
+  return String(value || "").replace(/\s+/g, "").toLowerCase();
+}
+
+function includesAny(text, keywords) {
+  return keywords.some((keyword) => text.includes(keyword));
 }
 
 async function completeGeneratedRoutine() {
