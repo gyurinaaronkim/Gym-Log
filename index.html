@@ -33,6 +33,7 @@
           <h1 id="heroTitle">운동 기록을 정리하는 중</h1>
           <p id="heroText">최근 운동, 통증 이력, PR, 목표 달성률을 한 화면에서 볼 수 있게 준비하고 있어.</p>
           <div class="hero-actions">
+            <button class="primary-button" id="generateRoutine" type="button">맞춤 루틴 생성</button>
             <a class="primary-button" href="./save.html">운동 저장</a>
             <a class="secondary-button" href="#tracker">머신 추적</a>
           </div>
@@ -56,6 +57,19 @@
             <small id="goalText">인바디가 추가되면 진행률이 자동 계산돼.</small>
           </div>
         </aside>
+      </section>
+
+      <section class="panel routine-panel" id="routine">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Personal Routine</p>
+            <h2>오늘 맞춤 운동 루틴</h2>
+          </div>
+          <span class="chip" id="routineBasis">기록 기반</span>
+        </div>
+        <div id="routineOutput" class="routine-output">
+          <p class="empty">버튼을 누르면 최근 운동 기록, 인바디, 통증 이력, PR을 기준으로 오늘 루틴을 생성해줄게.</p>
+        </div>
       </section>
 
       <section class="metrics" aria-label="운동 요약">

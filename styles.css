@@ -599,6 +599,108 @@ textarea {
   background: #fbfcf8;
 }
 
+.routine-panel {
+  margin-top: 16px;
+}
+
+.routine-output {
+  display: grid;
+  gap: 16px;
+}
+
+.routine-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.routine-summary article,
+.routine-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.routine-summary article {
+  min-height: 112px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 14px;
+}
+
+.routine-summary span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.routine-summary strong {
+  font-size: 22px;
+}
+
+.routine-summary small,
+.routine-card small {
+  color: var(--quiet);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.routine-block {
+  display: grid;
+  gap: 10px;
+}
+
+.routine-block h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.routine-exercises {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.routine-card {
+  min-height: 112px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 14px;
+  border-left: 4px solid var(--green);
+}
+
+.routine-card strong {
+  font-size: 16px;
+}
+
+.routine-card span {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.routine-card.caution {
+  border-left-color: var(--rose);
+  background: #fffafa;
+}
+
+.routine-notes {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--blue-soft);
+}
+
+.routine-notes p {
+  margin: 0;
+  color: var(--blue);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .page-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.7fr);
@@ -921,6 +1023,7 @@ textarea {
 
   .metrics,
   .readiness-grid,
+  .routine-summary,
   .tracker-summary {
     grid-template-columns: 1fr;
   }

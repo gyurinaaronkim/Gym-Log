@@ -55,6 +55,7 @@ function render() {
   renderRecords(records);
   renderPainHistory(workouts);
   renderWorkoutList(workouts);
+  renderRoutineBasis(workouts);
 }
 
 function getSortedWorkouts() {
@@ -320,6 +321,184 @@ function renderWorkoutList(workouts) {
   }).join("");
 }
 
+function renderRoutineBasis(workouts) {
+  const latest = workouts[0];
+  const body = getLatestBodyRecord();
+  const label = latest && body
+    ? `${shortDate(latest.date)} 운동 · ${shortDate(body.date)} 인바디`
+    : "기록 기반";
+  setText("#routineBasis", label);
+}
+
+function generatePersonalRoutine() {
+  const workouts = getSortedWorkouts();
+  const body = getLatestBodyRecord();
+  const records = getRecords(state.workouts);
+  const careItems = getCareItems(workouts);
+  const latest = workouts[0];
+  const plan = buildRoutinePlan({ workouts, body, records, careItems });
+  const container = document.querySelector("#routineOutput");
+
+  if (!plan) {
+    container.innerHTML = `<p class="empty">운동 기록이 조금 더 쌓이면 맞춤 루틴을 만들 수 있어.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="routine-summary">
+      <article>
+        <span>추천 방향</span>
+        <strong>${escapeHtml(plan.focus)}</strong>
+        <small>${escapeHtml(plan.reason)}</small>
+      </article>
+      <article>
+        <span>예상 시간</span>
+        <strong>${plan.durationMinutes}분</strong>
+        <small>워밍업과 마무리 포함</small>
+      </article>
+      <article>
+        <span>강도</span>
+        <strong>${escapeHtml(plan.intensity)}</strong>
+        <small>실패지점까지 가지 않기</small>
+      </article>
+    </div>
+    <div class="routine-block">
+      <h3>워밍업</h3>
+      <div class="routine-card">
+        <strong>러닝머신</strong>
+        <span>속도 5.5~6.0 km/h · 5~7분</span>
+        <small>어깨 돌리기, 맨몸 스쿼트 10회씩 추가</small>
+      </div>
+    </div>
+    <div class="routine-block">
+      <h3>근력 운동</h3>
+      <div class="routine-exercises">
+        ${plan.exercises.map((exercise) => `
+          <article class="routine-card ${exercise.caution ? "caution" : ""}">
+            <strong>${escapeHtml(exercise.name)}</strong>
+            <span>${exercise.weightKg ? `${exercise.weightKg}kg` : "맨몸"} · ${exercise.reps}회 x ${exercise.sets}세트</span>
+            <small>${escapeHtml(exercise.note)}</small>
+          </article>
+        `).join("")}
+      </div>
+    </div>
+    <div class="routine-block">
+      <h3>유산소</h3>
+      <div class="routine-card">
+        <strong>${escapeHtml(plan.cardio.name)}</strong>
+        <span>${escapeHtml(plan.cardio.detail)}</span>
+        <small>${escapeHtml(plan.cardio.note)}</small>
+      </div>
+    </div>
+    <div class="routine-notes">
+      ${plan.notes.map((note) => `<p>${escapeHtml(note)}</p>`).join("")}
+      ${latest ? `<p>최근 기준: ${shortDate(latest.date)} ${escapeHtml(latest.focus || "운동")} 이후 루틴.</p>` : ""}
+    </div>
+  `;
+}
+
+function buildRoutinePlan({ workouts, body, records, careItems }) {
+  if (!workouts.length) return null;
+
+  const latest = workouts[0];
+  const latestNames = new Set((latest.exercises || []).map((exercise) => exercise.name));
+  const careText = careItems.map((item) => item.text).join(" ");
+  const kneeConcern = careText.includes("무릎") || careText.includes("레그컬");
+  const shoulderConcern = careText.includes("어깨") || careText.includes("숄더");
+  const bodyFatPercent = Number(body?.bodyFatPercent || 0);
+  const fatLossMode = bodyFatPercent >= 20;
+  const fullBodyStreak = workouts.slice(0, 3).filter((workout) => (workout.focus || "").includes("전신")).length;
+
+  const focus = fullBodyStreak >= 2
+    ? "상체 자세 교정 + 하체 가벼운 유지"
+    : "전신 균형 루틴";
+  const reason = fatLossMode
+    ? "체지방 감량 목표가 있으므로 근력은 자세 중심, 유산소는 러닝 위주로 구성."
+    : "최근 수행 부위와 PR을 기준으로 무리 없는 증량 후보만 반영.";
+
+  const exercises = [
+    {
+      name: "레그프레스",
+      weightKg: suggestWeight("레그프레스", records, 60, latestNames.has("레그프레스") ? 10 : 0, 70),
+      reps: 12,
+      sets: 3,
+      note: "60kg를 반복 완료했으니 컨디션 좋으면 70kg 테스트. 무릎이 불편하면 60kg 유지.",
+    },
+    {
+      name: "체스트프레스",
+      weightKg: suggestWeight("체스트프레스", records, 20, 5, 25),
+      reps: 10,
+      sets: 3,
+      note: "어깨 개입이 없을 때만 25kg. 어깨가 먼저 느껴지면 20kg로 자세 우선.",
+    },
+    {
+      name: "랫풀다운",
+      weightKg: suggestWeight("랫풀다운", records, 25, 0, 25),
+      reps: 10,
+      sets: 3,
+      note: "손보다 팔꿈치로 당기기. 삼두나 승모가 강하면 중량 올리지 않기.",
+    },
+    {
+      name: "시티드로우",
+      weightKg: suggestWeight("시티드로우", records, 30, 0, 30),
+      reps: 12,
+      sets: 2,
+      note: "최근 3세트까지 했으니 오늘은 2세트로 등 자극 확인 중심.",
+    },
+    {
+      name: "숄더프레스",
+      weightKg: suggestWeight("숄더프레스", records, 10, 0, 15),
+      reps: 10,
+      sets: 2,
+      note: shoulderConcern
+        ? "오른쪽 안정성이 기준. 흔들리면 10kg로 낮추기."
+        : "15kg는 새 기준 후보. 좌우 속도가 같을 때만 유지.",
+      caution: shoulderConcern,
+    },
+    {
+      name: "레그컬",
+      weightKg: kneeConcern ? 20 : suggestWeight("레그컬", records, 20, 0, 25),
+      reps: 12,
+      sets: 2,
+      note: kneeConcern
+        ? "무릎 뒤쪽 이력이 있으니 20kg 확인용. 통증이나 소리 반복 시 제외."
+        : "무릎 뒤쪽 느낌이 깨끗할 때만 25kg까지.",
+      caution: kneeConcern,
+    },
+    {
+      name: "크런치",
+      weightKg: 0,
+      reps: 15,
+      sets: 2,
+      note: "목보다 복부를 말아 올리는 느낌으로 천천히.",
+    },
+  ];
+
+  return {
+    focus,
+    reason,
+    durationMinutes: 60,
+    intensity: "RPE 7",
+    exercises,
+    cardio: {
+      name: "러닝머신",
+      detail: fatLossMode ? "속도 6.0~8.5 km/h · 12~15분" : "속도 6.0~8.0 km/h · 10~12분",
+      note: "자전거보다 러닝 적응이 좋았으므로 러닝 중심. 메스꺼움이 오면 즉시 속도를 낮추기.",
+    },
+    notes: [
+      "오늘 목표는 PR 욕심보다 자세 재현성 확인.",
+      "레그컬과 숄더프레스는 통증/좌우 균형 체크 항목.",
+      "모든 세트는 2회 정도 여유를 남기고 끝내기.",
+    ],
+  };
+}
+
+function suggestWeight(name, records, fallback, increment, cap) {
+  const record = records.find((item) => item.name === name);
+  const base = Number(record?.weightKg || fallback);
+  return Math.min(base + increment, cap);
+}
+
 function getRecords(workouts) {
   const records = new Map();
 
@@ -412,6 +591,10 @@ function getFatMass(record) {
   return Number(record.weightKg || 0) * Number(record.bodyFatPercent || 0) / 100;
 }
 
+function getLatestBodyRecord() {
+  return [...state.body].sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+}
+
 function parseDate(value) {
   return new Date(`${value}T00:00:00`);
 }
@@ -447,5 +630,7 @@ document.querySelector("#exerciseSelect").addEventListener("change", (event) => 
   state.selectedExercise = event.target.value;
   renderExerciseTrend();
 });
+
+document.querySelector("#generateRoutine").addEventListener("click", generatePersonalRoutine);
 
 loadData();
