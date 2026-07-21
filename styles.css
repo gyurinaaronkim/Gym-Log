@@ -701,6 +701,22 @@ textarea {
   line-height: 1.5;
 }
 
+.routine-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.routine-actions .status {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 .page-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.7fr);

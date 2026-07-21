@@ -3,6 +3,7 @@ const state = {
   body: [],
   sort: "desc",
   selectedExercise: "",
+  generatedRoutine: null,
 };
 
 const FAT_LOSS_GOAL_KG = 8;
@@ -343,6 +344,7 @@ function generatePersonalRoutine() {
   container.innerHTML = `<p class="empty">최근 기록을 확인해서 루틴을 만드는 중이야...</p>`;
 
   const plan = buildRoutinePlan({ workouts, body, records, careItems });
+  state.generatedRoutine = plan;
 
   if (!plan) {
     container.innerHTML = `<p class="empty">운동 기록을 아직 불러오지 못했어. 페이지를 새로고침한 뒤 다시 눌러줘.</p>`;
@@ -400,6 +402,8 @@ function generatePersonalRoutine() {
       ${latest ? `<p>최근 기준: ${shortDate(latest.date)} ${escapeHtml(latest.focus || "운동")} 이후 루틴.</p>` : ""}
     </div>
   `;
+
+  container.insertAdjacentHTML("beforeend", routineActionsMarkup());
 }
 
 function buildRoutinePlan({ workouts, body, records, careItems }) {
@@ -496,6 +500,111 @@ function buildRoutinePlan({ workouts, body, records, careItems }) {
       "모든 세트는 2회 정도 여유를 남기고 끝내기.",
     ],
   };
+}
+
+function routineActionsMarkup() {
+  return `
+    <div class="routine-actions">
+      <button class="primary-button" id="completeRoutine" type="button">오늘 운동 완료</button>
+      <a class="secondary-button" href="./save.html">저장 설정 확인</a>
+      <p class="status" id="routineSaveStatus"></p>
+    </div>
+  `;
+}
+
+async function completeGeneratedRoutine() {
+  const status = document.querySelector("#routineSaveStatus");
+  const plan = state.generatedRoutine;
+
+  if (!status) return;
+
+  if (!plan) {
+    status.textContent = "먼저 맞춤 루틴을 생성해줘.";
+    return;
+  }
+
+  const workerUrl = localStorage.getItem("gymLogWorkerUrl");
+  const apiSecret = localStorage.getItem("gymLogApiSecret");
+
+  if (!workerUrl || !apiSecret) {
+    status.textContent = "먼저 저장 설정을 해줘. save.html에서 Worker URL과 Save key를 저장하면 돼.";
+    return;
+  }
+
+  const record = buildWorkoutRecordFromRoutine(plan);
+  status.textContent = "오늘 운동 기록을 GitHub에 저장하는 중...";
+
+  try {
+    const response = await fetch(`${workerUrl.replace(/\/$/, "")}/workouts`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-secret": apiSecret,
+      },
+      body: JSON.stringify({ record }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(buildRoutineSaveError(response.status, result.error));
+
+    mergeWorkoutIntoState(record);
+    status.textContent = `저장 완료. Commit: ${result.commit || "created"}`;
+  } catch (error) {
+    status.textContent = explainRoutineSaveError(error);
+  }
+}
+
+function buildWorkoutRecordFromRoutine(plan) {
+  const date = todayKey();
+  return {
+    id: `workout-${date}`,
+    date,
+    durationMinutes: plan.durationMinutes || 60,
+    focus: plan.focus || "맞춤 루틴",
+    summary: `홈페이지 맞춤 루틴으로 운동 완료. ${plan.reason || ""}`.trim(),
+    exercises: (plan.exercises || []).map((exercise) => ({
+      name: exercise.name,
+      weightKg: Number(exercise.weightKg || 0),
+      reps: Number(exercise.reps || 0),
+      sets: Number(exercise.sets || 0),
+      notes: exercise.note || "",
+    })),
+    cardio: [
+      {
+        name: plan.cardio?.name || "러닝머신",
+        minutes: 15,
+        notes: plan.cardio?.detail || "맞춤 루틴 유산소",
+      },
+    ],
+    coachNotes: [
+      ...(plan.notes || []),
+      "홈페이지 맞춤 루틴 생성 후 오늘 운동 완료 버튼으로 저장됨.",
+    ],
+    notes: "홈페이지 추천 루틴 완료 기록.",
+  };
+}
+
+function mergeWorkoutIntoState(record) {
+  const index = state.workouts.findIndex((workout) => workout.id === record.id || workout.date === record.date);
+  if (index >= 0) {
+    state.workouts[index] = record;
+  } else {
+    state.workouts.push(record);
+  }
+}
+
+function buildRoutineSaveError(status, detail) {
+  if (status === 401) return "Save key가 API_SECRET과 달라. 저장 설정을 다시 확인해줘.";
+  if (status === 404) return "Worker에 /workouts 저장 API가 없어. Cloudflare Worker 코드가 최신인지 확인해줘.";
+  return detail || "저장에 실패했어.";
+}
+
+function explainRoutineSaveError(error) {
+  const message = error.message || String(error);
+  if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+    return "Worker에 연결하지 못했어. Worker URL과 Cloudflare 배포 상태를 확인해줘.";
+  }
+  return message;
 }
 
 function suggestWeight(name, records, fallback, increment, cap) {
@@ -608,6 +717,14 @@ function toDateKey(date) {
   return date.toISOString().slice(0, 10);
 }
 
+function todayKey() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function shortDate(value) {
   const date = parseDate(value);
   return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -645,6 +762,15 @@ if (exerciseSelect) {
 const generateRoutineButton = document.querySelector("#generateRoutine");
 if (generateRoutineButton) {
   generateRoutineButton.addEventListener("click", generatePersonalRoutine);
+}
+
+const routineOutput = document.querySelector("#routineOutput");
+if (routineOutput) {
+  routineOutput.addEventListener("click", (event) => {
+    if (event.target.closest("#completeRoutine")) {
+      completeGeneratedRoutine();
+    }
+  });
 }
 
 loadData();
