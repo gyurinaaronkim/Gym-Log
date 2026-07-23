@@ -211,6 +211,13 @@ p {
   color: #ffffff;
 }
 
+.primary-button:disabled,
+.secondary-button:disabled,
+.ghost-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
 .secondary-button,
 .ghost-button {
   background: #ffffff;

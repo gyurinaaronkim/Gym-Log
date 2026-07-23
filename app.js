@@ -5,6 +5,8 @@ const state = {
   sort: "desc",
   selectedExercise: "",
   generatedRoutine: null,
+  isLoadingData: true,
+  pendingRoutineGenerate: false,
 };
 
 const FAT_LOSS_GOAL_KG = 8;
@@ -21,6 +23,7 @@ const monthFormat = new Intl.DateTimeFormat("ko-KR", {
 });
 
 async function loadData() {
+  updateRoutineButtonState();
   const [workouts, body, machineDb] = await Promise.all([
     fetchJson("./data/workouts.json"),
     fetchJson("./data/body.json"),
@@ -30,7 +33,14 @@ async function loadData() {
   state.workouts = Array.isArray(workouts) ? workouts : [];
   state.body = Array.isArray(body) ? body : [];
   state.machineDb = Array.isArray(machineDb) ? machineDb : [];
+  state.isLoadingData = false;
   render();
+  updateRoutineButtonState();
+
+  if (state.pendingRoutineGenerate) {
+    state.pendingRoutineGenerate = false;
+    generatePersonalRoutine();
+  }
 }
 
 async function fetchJson(path) {
@@ -335,6 +345,16 @@ function renderRoutineBasis(workouts) {
 }
 
 function generatePersonalRoutine() {
+  if (state.isLoadingData) {
+    state.pendingRoutineGenerate = true;
+    const container = document.querySelector("#routineOutput");
+    if (container) {
+      container.innerHTML = `<p class="empty">데이터를 불러오는 중이야. 준비가 끝나면 자동으로 루틴을 생성할게.</p>`;
+    }
+    updateRoutineButtonState("queued");
+    return;
+  }
+
   const workouts = getSortedWorkouts();
   const body = getLatestBodyRecord();
   const records = getRecords(state.workouts);
@@ -859,15 +879,14 @@ function parseDate(value) {
 }
 
 function toDateKey(date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function todayKey() {
-  const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function todayKey() {
+  return toDateKey(new Date());
 }
 
 function shortDate(value) {
@@ -877,6 +896,20 @@ function shortDate(value) {
 
 function setText(selector, value) {
   document.querySelector(selector).textContent = value;
+}
+
+function updateRoutineButtonState(mode = "") {
+  const button = document.querySelector("#generateRoutine");
+  if (!button) return;
+
+  if (state.isLoadingData) {
+    button.disabled = true;
+    button.textContent = mode === "queued" ? "준비 후 자동 생성" : "데이터 준비 중";
+    return;
+  }
+
+  button.disabled = false;
+  button.textContent = "맞춤 루틴 생성";
 }
 
 function escapeHtml(value) {
